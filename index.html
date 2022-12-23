@@ -21,6 +21,7 @@
     // この実装はステージング環境向けに書かれているため、実装する場合は適宜この箇所を修正してください。（IFrameのsrcも同様）
     let targetOrigin = "https://talk-web.stg.sklt.io";
     window.addEventListener("message", function(e) {
+      console.log(e);
       // postMessageは様々な場所から呼べる（＝インジェクションの口になる可能性がある）ため、最初にメッセージ送信元のオリジンの検証を行っておくとよりセキュアな実装になります。
       if (event.origin !== targetOrigin) return;
       
@@ -56,7 +57,7 @@
         case "loginSuccessed":
           // クエリパラメータによる自動ログイン、手動ログインも含め、ログイン処理が完了した時にここに落ちます。
           // Example Payload: {"userId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
-          alert("ここにログイン成功時の処理を記述: " + eventPayload);
+          alert("ここにログイン成功時の処理を記述: " + eventPayload.userId);
           break;
         case "sceneChanged":
           // Unityのシーン遷移時に呼ばれます。
@@ -66,18 +67,18 @@
           //  - WaitingRoom: ログイン後、サイネージモード（通話前アレンジ）または通話対象のアバター選択画面としてここに遷移します。
           //  - GuestChatRoom: ゲストがオペレーターを呼び出すボタン及び通話中のシーンとしてWaitingRoomからここに遷移します。
           // Example Payload: {"sceneName":"GuestChatRoom"}
-          alert("ここにシーン遷移時の処理を記述: " + eventPayload);
+          alert("ここにシーン遷移時の処理を記述: " + eventPayload.sceneName);
           break;
         case "chatStarted":
           // GuestChatRoomにおいて、オペレーターと音声および通話が始まるタイミングで呼ばれます。
           // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
-          alert("ここにチャット開始時の処理を記述: " + eventPayload);
+          alert("ここにチャット開始時の処理を記述: " + eventPayload.chatId);
           break;
         case "chatEnded":
           // GuestChatRoomにおいて、オペレーターとの通話が終了したタイミングで呼ばれます。
           // このイベント発火後、画面はWaitingRoomへと戻ります。
           // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
-          alert("ここにチャット終了時の処理を記述: " + eventPayload);
+          alert("ここにチャット終了時の処理を記述: " + eventPayload.chatId);
           break;
       }
     })
