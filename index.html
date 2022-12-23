@@ -26,7 +26,7 @@
       if (event.origin !== targetOrigin) return;
       
       // PayloadはシリアライズされたJSONで渡されます。
-      let eventPayload = JSON.parse(e.data.ctx);
+      let eventPayload = e.data.ctx ? JSON.parse(e.data.ctx) : {};
       
       console.log("childs event received. ", e.data.ctx);
       
