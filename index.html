@@ -8,17 +8,33 @@
 </head>
 <body>
   <div style="display: flex; justify-content: center;">
-    <iframe id="unity-webgl" loading="lazy" width="480px" height="800px" src="https://talk-web.stg.sklt.io/" scrolling="no" frameborder="0">
+    <!-- allow属性でカメラとマイクを許可するのを必須。loadingはeager(即時)にしておけば非表示時も読み込むので推奨です。 -->
+    <!-- 他の属性は任意ですが後述のイベントハンドリングのために一意なIDを付けること。 -->
+    <iframe id="unity-webgl" loading="eager" width="480px" height="800px" src="https://talk-web.stg.sklt.io/" scrolling="no" frameborder="0" allow="camera *; microphone *">
     </iframe>
   </div>
   <script type="text/javascript">
+    // 安全なクロスオリジン間のメッセージングのために用意されたpostMessageを利用します。
+    // https://developer.mozilla.org/ja/docs/Web/API/Window/postMessage
+    
+    // postMessageの仕様としてIFrameのオリジンを明示的に指定します。
+    // この実装はステージング環境向けに書かれているため、実装する場合は適宜この箇所を修正してください。（IFrameのsrcも同様）
+    let targetOrigin = "https://talk-web.stg.sklt.io";
     window.addEventListener("message", function(e) {
-      let eventPayload = JSON.stringify(e.data.ctx);
+      // postMessageは様々な場所から呼べる（＝インジェクションの口になる可能性がある）ため、最初にメッセージ送信元のオリジンの検証を行っておくとよりセキュアな実装になります。
+      if (event.origin !== targetOrigin) return;
+      
+      // PayloadはシリアライズされたJSONで渡されます。
+      let eventPayload = JSON.parse(e.data.ctx);
+      
       console.log("childs event received. ", e.data.ctx);
+      
+      // eventNameというキーでUnityから渡されたメッセージを識別して処理してもらう仕様となります。
       switch(e.data.eventName) {
         case "unityInitialized":
           // Unity側のスクリプトが読み込まれるとIFrameの親要素に対してunityInitializedというメッセージが通知されます。
           // このタイミングでUnityが稼働するIFrameに対して受信したいイベントを登録します。
+          // 第二引数に「"*"」としてワイルドカードを渡すか、明示的にIFrameのオリジンを指定しないとpostMessageが飛びません。
           document.querySelector("#unity-webgl").contentWindow.postMessage({
               "name": "registerEvents",
               "events": [
@@ -30,25 +46,36 @@
                   "chatStarted", // ゲストとオペレータの通話が確立した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
                   "chatEnded" // ゲストとオペレータの通話が終了した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
               ]
-          }, "*");
+          }, targetOrigin);
           break;
         case "loginFailed":
+          // IDもしくはパスワードが間違っている、SSTalkのAPIサーバー不調時にここに落ちます。
           // Example Payload: ""
           alert("ここにログイン失敗時の処理を記述");
           break;
         case "loginSuccessed":
+          // クエリパラメータによる自動ログイン、手動ログインも含め、ログイン処理が完了した時にここに落ちます。
           // Example Payload: {"userId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
           alert("ここにログイン成功時の処理を記述: " + eventPayload);
           break;
         case "sceneChanged":
+          // Unityのシーン遷移時に呼ばれます。
+          // 現在以下の様なシーンを実装しています。
+          //  - EntryPoint: Unity起動時およびログアウト時にUnityアプリの初期化処理を行うシーンです。
+          //  - Title: EntryPointで初期化完了時に必ずここに遷移します。
+          //  - WaitingRoom: ログイン後、サイネージモード（通話前アレンジ）または通話対象のアバター選択画面としてここに遷移します。
+          //  - GuestChatRoom: ゲストがオペレーターを呼び出すボタン及び通話中のシーンとしてWaitingRoomからここに遷移します。
           // Example Payload: {"sceneName":"GuestChatRoom"}
           alert("ここにシーン遷移時の処理を記述: " + eventPayload);
           break;
         case "chatStarted":
+          // GuestChatRoomにおいて、オペレーターと音声および通話が始まるタイミングで呼ばれます。
           // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
           alert("ここにチャット開始時の処理を記述: " + eventPayload);
           break;
         case "chatEnded":
+          // GuestChatRoomにおいて、オペレーターとの通話が終了したタイミングで呼ばれます。
+          // このイベント発火後、画面はWaitingRoomへと戻ります。
           // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
           alert("ここにチャット終了時の処理を記述: " + eventPayload);
           break;
