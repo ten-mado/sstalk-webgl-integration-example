@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSTalk Example</title>
+</head>
+<body>
+  <div style="display: flex; justify-content: center;">
+    <iframe id="unity-webgl" loading="lazy" width="480px" height="800px" src="https://talk-web.stg.sklt.io/" scrolling="no" frameborder="0">
+    </iframe>
+  </div>
+  <script type="text/javascript">
+    window.addEventListener('load', function() {
+      initializeCallbackFunctions(
+        {
+          "loginFailed": (ctx) => { console.log(ctx); alert("login failed: " + ctx) },
+          "loginSuccessed": (ctx) => { console.log(ctx); alert("loginSuccessed: " + ctx)},
+          "sceenChanged": (ctx) => { console.log(ctx); alert("sceenChanged: " + ctx)},
+          "chatStarted": (ctx) => { console.log(ctx); alert("chatStarted: " + ctx)},
+          "chatEnded": (ctx) => { console.log(ctx); alert("chatEnded: " + ctx))},
+        }
+      );
+    });
+  </script>
+</body>
