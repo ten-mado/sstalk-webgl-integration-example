@@ -8,20 +8,51 @@
 </head>
 <body>
   <div style="display: flex; justify-content: center;">
-    <iframe id="unity-webgl" loading="lazy" width="480px" height="800px" src="https://talk-web.stg.sklt.io/" scrolling="no" frameborder="0">
+    <iframe id="unity-webgl" loading="lazy" width="480px" height="800px" src="/" scrolling="no" frameborder="0">
     </iframe>
   </div>
   <script type="text/javascript">
-    window.addEventListener('load', function() {
-      initializeCallbackFunctions(
-        {
-          "loginFailed": (ctx) => { console.log(ctx); alert("login failed: " + ctx) },
-          "loginSuccessed": (ctx) => { console.log(ctx); alert("loginSuccessed: " + ctx)},
-          "sceenChanged": (ctx) => { console.log(ctx); alert("sceenChanged: " + ctx)},
-          "chatStarted": (ctx) => { console.log(ctx); alert("chatStarted: " + ctx)},
-          "chatEnded": (ctx) => { console.log(ctx); alert("chatEnded: " + ctx))},
-        }
-      );
-    });
+    window.addEventListener("message", function(e) {
+      let eventPayload = JSON.stringify(e.data.ctx);
+      console.log("childs event received. ", e.data.ctx);
+      switch(e.data.eventName) {
+        case "unityInitialized":
+          // Unity側のスクリプトが読み込まれるとIFrameの親要素に対してunityInitializedというメッセージが通知されます。
+          // このタイミングでUnityが稼働するIFrameに対して受信したいイベントを登録します。
+          document.querySelector("#unity-webgl").contentWindow.postMessage({
+              "name": "registerEvents",
+              "events": [
+                  // 以下、イベントを定義している中から任意で利用して下さい。
+                  // なお、ctx変数にはUnity側の変数をダンプしているため、ロギングできると良いです（万が一の調査時に役立つため）
+                  "loginFailed", // ログイン画面でログイン失敗時に呼ばれるイベント（ctx:null）
+                  "loginSuccessed", // ログイン画面でログイン成功時に呼ばれるイベント（ctx: {"userId": ログインユーザのID}）
+                  "sceneChanged", // Unity側で管理しているシーン遷移時に呼ばれるイベント（ctx: {"sceneName": シーン名}）
+                  "chatStarted", // ゲストとオペレータの通話が確立した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
+                  "chatEnded" // ゲストとオペレータの通話が終了した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
+              ]
+          });
+          break;
+        case "loginFailed":
+          // Example Payload: ""
+          alert("ここにログイン失敗時の処理を記述");
+          break;
+        case "loginSuccessed":
+          // Example Payload: {"userId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
+          alert("ここにログイン成功時の処理を記述: " + eventPayload);
+          break;
+        case "sceneChanged":
+          // Example Payload: {"sceneName":"GuestChatRoom"}
+          alert("ここにシーン遷移時の処理を記述: " + eventPayload);
+          break;
+        case "chatStarted":
+          // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
+          alert("ここにチャット開始時の処理を記述: " + eventPayload);
+          break;
+        case "chatEnded":
+          // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
+          alert("ここにチャット終了時の処理を記述: " + eventPayload);
+          break;
+      }
+    })
   </script>
 </body>
