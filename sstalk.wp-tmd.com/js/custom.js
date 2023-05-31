@@ -324,21 +324,21 @@ $('.sstalk_sticky_icon').on('click', function () {
 		let param = paramString.split('=');
 		params[param[0]] = param[1];
 	})
-	$('.sstalk_modal_iframe').attr('src', '/sstalk.html?user=' + params.user + '&key=' + params.key + '&time=' + new Date().getTime());
-	setTimeout(function() {
-		$('.sstalk_modal_iframe')[0].contentWindow.location.reload(true);
-	}, 100);
+	const iframe = document.createElement('iframe');
+	iframe.classList.add('sstalk_modal_iframe');
+	iframe.src = '/sstalk.html?user=' + params.user + '&key=' + params.key + '&time=' + new Date().getTime();
+	document.querySelector('.sstalk_modal').appendChild(iframe);
 })
 $('.sstalk_modal_bg').on('click', function () {
 	console.log('SSTalk モーダルの終了');
-	$('.sstalk_modal_iframe').attr('src', '');
+	$('.sstalk_modal_iframe').remove();
 	$('.sstalk_modal').toggle();
 })
 
 $('.sstalk_modal_close_button > .batsu').on('click', function () {
 	console.log('SSTalk モーダルの終了');
 	// iframeの内容を破棄したい
-	$('.sstalk_modal_iframe').attr('src', '');
+	$('.sstalk_modal_iframe').remove();
 	$('.sstalk_modal').toggle();
 })
 });
