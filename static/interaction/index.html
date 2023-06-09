@@ -32,12 +32,12 @@
 </head>
 
 <body>
-    <div style="display: flex; justify-content: center;">
+    <div id="webgl-wrapper" style="display: flex; justify-content: center;">
         <!-- allow属性でカメラとマイクを許可するのを必須。loadingはeager(即時)にしておけば非表示時も読み込むので推奨です。 -->
         <!-- 他の属性は任意ですが後述のイベントハンドリングのために一意なIDを付けること。 -->
-        <iframe id="unity-webgl" loading="eager" width="480px" height="800px" src="" scrolling="no" frameborder="0"
+        <!-- <iframe id="unity-webgl" loading="eager" width="480px" height="800px" src="" scrolling="no" frameborder="0"
             allow="camera *; microphone *">
-        </iframe>
+        </iframe> -->
         <div id="logs"></div>
     </div>
     <div id="buttons">
@@ -59,7 +59,6 @@
                 let param = paramString.split('=');
                 params[param[0]] = param[1];
             })
-            const iframe = document.querySelector('#unity-webgl');
             let envStr = '';
             if (params.env === 'stg') {
                 envStr = '.stg';
@@ -68,7 +67,16 @@
             }
             const srcParam = params.user && params.key ? '?user=' + params.user + '&key=' + params.key : '';
             targetOrigin = 'https://talk-web' + envStr + '.sklt.io';
+
+            
+            const iframe = document.createElement('iframe');
+            iframe.id = 'unity-webgl';
+            iframe.loading="eager";
+            iframe.style="width: 480px; height: 800px; border: 0;";
+            iframe.scrolling="no";
+            iframe.allow="camera *; microphone *";
             iframe.src = targetOrigin + '/' + srcParam;
+            document.querySelector('#webgl-wrapper').appendChild(iframe);
         });
 
         function addLog(logText) {
