@@ -23,7 +23,7 @@
     window.addEventListener("message", function(e) {
       console.log(e);
       // postMessageは様々な場所から呼べる（＝インジェクションの口になる可能性がある）ため、最初にメッセージ送信元のオリジンの検証を行っておくとよりセキュアな実装になります。
-      if (event.origin !== targetOrigin) return;
+      if (e.origin !== targetOrigin) return;
       
       // PayloadはシリアライズされたJSONで渡されます。
       let eventPayload = e.data.ctx ? JSON.parse(e.data.ctx) : {};

@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  server:
+    container_name: sstalk-webgl-integration-example
+    build: ./docker
+    ports:
+      - 8878:443
+    volumes:
+      - ./docker/nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf
+      - ./static:/usr/share/nginx/html
