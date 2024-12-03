@@ -2,221 +2,241 @@
 <html lang="jp">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SSTalk Integration</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSTalk Integration</title>
 
-    <style>
-        #logs {
-            width: 460px;
-            background-color: #666;
-            overflow-x: clip;
-            overflow-y: auto;
-            padding: 10px;
-            color: white;
-            max-height: 780px;
-        }
+  <style>
+    #logs {
+      width: 460px;
+      background-color: #666;
+      overflow-x: clip;
+      overflow-y: auto;
+      padding: 10px;
+      color: white;
+      max-height: 780px;
+    }
 
-        #logs>div {
-            overflow-wrap: break-word;
-        }
+    #logs > div {
+      overflow-wrap: break-word;
+    }
 
-        #available-operators>div {
-            cursor: pointer;
-            background-color: #99999950;
-            padding: 5px;
-            margin: 5px;
-        }
-    </style>
+    #available-operators > div {
+      cursor: pointer;
+      background-color: #99999950;
+      padding: 5px;
+      margin: 5px;
+    }
+  </style>
 </head>
 
 <body>
-    <div id="webgl-wrapper" style="display: flex; justify-content: center;">
-        <!-- allow属性でカメラとマイクを許可するのを必須。loadingはeager(即時)にしておけば非表示時も読み込むので推奨です。 -->
-        <!-- 他の属性は任意ですが後述のイベントハンドリングのために一意なIDを付けること。 -->
-        <!-- <iframe id="unity-webgl" loading="eager" width="480px" height="800px" src="" scrolling="no" frameborder="0"
-            allow="camera *; microphone *">
-        </iframe> -->
-        <div id="logs"></div>
-    </div>
-    <div id="buttons">
-        <button type="button" onclick="getAvailableOperators()">通話可能なオペレーター一覧を取得</button>
-        <button type="button" onclick="clearLogs()">UI表示のログをクリア</button>
-    </div>
-    <div id="available-operators">
+<div id="webgl-wrapper" style="display: flex; justify-content: center;">
+  <!-- allow属性でカメラとマイクを許可するのを必須。loadingはeager(即時)にしておけば非表示時も読み込むので推奨です。 -->
+  <!-- 他の属性は任意ですが後述のイベントハンドリングのために一意なIDを付けること。 -->
+  <!-- <iframe id="unity-webgl" loading="eager" width="480px" height="800px" src="" scrolling="no" frameborder="0"
+      allow="camera *; microphone *">
+  </iframe> -->
+  <div id="logs"></div>
+</div>
+<div id="buttons">
+  <button type="button" onclick="getAvailableOperators()">通話可能なオペレーター一覧を取得</button>
+  <button type="button" onclick="notifyToOperator()">オペレーターに通知</button>
+  <button type="button" onclick="clearLogs()">UI表示のログをクリア</button>
+</div>
+<div id="available-operators">
 
-    </div>
-    <script type="text/javascript">
-        var targetOrigin = "https://talk-web.sklt.io"; // replace by above function
-        // 対話UIのサンプル実装です。
-        document.addEventListener('DOMContentLoaded', function () {
-            // SSTalkの読み込みURLを調整します（STG, PROD等）
-            var paramset = window.location.href.split(/[\?&]/);
-            console.log('paramset', paramset);
-            const params = {};
-            paramset.forEach(paramString => {
-                let param = paramString.split('=');
-                params[param[0]] = param[1];
-            })
-            let envStr = '';
-            if (params.env === 'stg') {
-                envStr = '.stg';
-            } else if (params.env === 'dev') {
-                envStr = '.dev';
-            }
-            const srcParam = params.user && params.key ? '?user=' + params.user + '&key=' + params.key : '';
-            targetOrigin = 'https://talk-web' + envStr + '.sklt.io';
+</div>
+<script type="text/javascript">
+  var targetOrigin = "https://talk-web.sklt.io"; // replace by above function
+  // 対話UIのサンプル実装です。
+  document.addEventListener('DOMContentLoaded', function () {
+    // SSTalkの読み込みURLを調整します（STG, PROD等）
+    var paramset = window.location.href.split(/[\?&]/);
+    console.log('paramset', paramset);
+    const params = {};
+    paramset.forEach(paramString => {
+      let param = paramString.split('=');
+      params[param[0]] = param[1];
+    })
+    let envStr = '';
+    if (params.env === 'stg') {
+      envStr = '.stg';
+    } else if (params.env === 'dev') {
+      envStr = '.dev';
+    }
+    const srcParam = params.user && params.key ? '?user=' + params.user + '&key=' + params.key : '';
+    targetOrigin = 'https://talk-web' + envStr + '.sklt.io';
 
-            
-            const iframe = document.createElement('iframe');
-            iframe.id = 'unity-webgl';
-            iframe.loading="eager";
-            iframe.style="width: 480px; height: 800px; border: 0;";
-            iframe.scrolling="no";
-            iframe.allow="camera *; microphone *";
-            iframe.src = targetOrigin + '/' + srcParam;
-            document.querySelector('#webgl-wrapper').appendChild(iframe);
-        });
 
-        function addLog(logText) {
-            console.log('addLog: ' + logText);
-            // イベントログをUIにフィードバック
-            let logElem = document.createElement("div");
-            logElem.innerText = logText;
-            document.querySelector('#logs').appendChild(logElem);
+    const iframe = document.createElement('iframe');
+    iframe.id = 'unity-webgl';
+    iframe.loading = "eager";
+    iframe.style = "width: 480px; height: 800px; border: 0;";
+    iframe.scrolling = "no";
+    iframe.allow = "camera *; microphone *";
+    iframe.src = targetOrigin + '/' + srcParam;
+    document.querySelector('#webgl-wrapper').appendChild(iframe);
+  });
+
+  function addLog(logText) {
+    console.log('addLog: ' + logText);
+    // イベントログをUIにフィードバック
+    let logElem = document.createElement("div");
+    logElem.innerText = logText;
+    document.querySelector('#logs').appendChild(logElem);
+  }
+
+  function getAvailableOperators() {
+    // 現在呼び出し可能なオペレーター一覧のリクエストを送信
+    console.log('getAvailableOperators');
+    document.querySelector('#unity-webgl').contentWindow.postMessage({name: 'getAvailableOperators'}, "*");
+  }
+
+  const notifyToOperator = () => {
+    console.log(`notifyToOperator`);
+    document.querySelector('#unity-webgl').contentWindow.postMessage({
+      name: 'notifyToOperator',
+      messageTitle: "遠隔ボタンからのご連絡",
+      messageBody: "私は耳が不自由なため、手話でご対応いただけますでしょうか。"
+    });
+  }
+
+  function clearLogs() {
+    // UIに表示されているログを全て消去
+    document.querySelectorAll('#logs > div').forEach(el => {
+      el.remove()
+    });
+  }
+
+  function applyAvailableOperators(payload) {
+    // Unity側から得られた呼び出しリストをUIにフィードバック
+    // Example Payload: [{
+    //   "chatId": "xxxx-xxxx-xxxx",
+    //   "avatarName": "アバター表示名",
+    //   "displayName": "オペレーター表示名",
+    //   "affiliationName": "所属名",
+    //   "affiliationId": "所属ID",
+    //   "connectionId": "チャットルームに移動する時に渡す文字列",
+    // }]
+    document.querySelectorAll('#available-operators > div').forEach(el => {
+      el.remove()
+    }); // すでに存在するNodeを削除
+    console.log('payload length: ', payload.length);
+    for (var i = 0; i < payload.length; i++) {
+      let operatorElem = document.createElement("div");
+      operatorElem.innerText = 'chatId: ' + payload[i].chatId + ', avatarName: ' +
+        payload[i].avatarName + ', displayName: ' + payload[i].displayName + ', affiliationName: ' + payload[i].affiliationName +
+        ', affiliationId: ' + payload[i].affiliationId + ', connectionId: ' + payload[i].connectionId;
+      operatorElem.addEventListener('click', {
+        // チャットルームに遷移するイベントをClickイベントとして定義
+        connectionId: payload[i].connectionId,
+        handleEvent: function () {
+          addLog('チャットルームに移動->' + this.connectionId);
+          document.querySelector('#unity-webgl').contentWindow.postMessage({
+            name: 'moveToChatRoom',
+            connectionId: this.connectionId
+          }, "*");
         }
+      });
+      document.querySelector('#available-operators').appendChild(operatorElem);
+    }
+  }
 
-        function getAvailableOperators() {
-            // 現在呼び出し可能なオペレーター一覧のリクエストを送信
-            console.log('getAvailableOperators');
-            document.querySelector('#unity-webgl').contentWindow.postMessage({ name: 'getAvailableOperators' }, "*");
-        }
+  // 対話UIのサンプル実装　ここまで
 
-        function clearLogs() {
-            // UIに表示されているログを全て消去
-            document.querySelectorAll('#logs > div').forEach(el => { el.remove() });
-        }
+  // 安全なクロスオリジン間のメッセージングのために用意されたpostMessageを利用します。
+  // https://developer.mozilla.org/ja/docs/Web/API/Window/postMessage
 
-        function applyAvailableOperators(payload) {
-            // Unity側から得られた呼び出しリストをUIにフィードバック
-            // Example Payload: [{
-            //   "chatId": "xxxx-xxxx-xxxx",
-            //   "avatarName": "アバター表示名",
-            //   "displayName": "オペレーター表示名",
-            //   "affiliationName": "所属名",
-            //   "affiliationId": "所属ID",
-            //   "connectionId": "チャットルームに移動する時に渡す文字列",
-            // }]
-            document.querySelectorAll('#available-operators > div').forEach(el => { el.remove() }); // すでに存在するNodeを削除
-            console.log('payload length: ', payload.length);
-            for (var i = 0; i < payload.length; i++) {
-                let operatorElem = document.createElement("div");
-                operatorElem.innerText = 'chatId: ' + payload[i].chatId + ', avatarName: ' +
-                    payload[i].avatarName + ', displayName: ' + payload[i].displayName + ', affiliationName: ' + payload[i].affiliationName +
-                    ', affiliationId: ' + payload[i].affiliationId + ', connectionId: ' + payload[i].connectionId;
-                operatorElem.addEventListener('click', {
-                    // チャットルームに遷移するイベントをClickイベントとして定義
-                    connectionId: payload[i].connectionId,
-                    handleEvent: function () {
-                        addLog('チャットルームに移動->' + this.connectionId);
-                        document.querySelector('#unity-webgl').contentWindow.postMessage({
-                            name: 'moveToChatRoom',
-                            connectionId: this.connectionId
-                        }, "*");
-                    }
-                });
-                document.querySelector('#available-operators').appendChild(operatorElem);
-            }
-        }
-        // 対話UIのサンプル実装　ここまで
+  // postMessageの仕様としてIFrameのオリジンを明示的に指定します。
+  // この実装はステージング環境向けに書かれているため、実装する場合は適宜この箇所を修正してください。（IFrameのsrcも同様）
+  window.addEventListener("message", function (e) {
+    console.log('event message: ', e);
+    // postMessageは様々な場所から呼べる（＝インジェクションの口になる可能性がある）ため、最初にメッセージ送信元のオリジンの検証を行っておくとよりセキュアな実装になります。
+    if (e.origin !== targetOrigin) return;
 
-        // 安全なクロスオリジン間のメッセージングのために用意されたpostMessageを利用します。
-        // https://developer.mozilla.org/ja/docs/Web/API/Window/postMessage
+    // PayloadはシリアライズされたJSONで渡されます。
+    let eventPayload = e.data.ctx ? JSON.parse(e.data.ctx) : {};
 
-        // postMessageの仕様としてIFrameのオリジンを明示的に指定します。
-        // この実装はステージング環境向けに書かれているため、実装する場合は適宜この箇所を修正してください。（IFrameのsrcも同様）
-        window.addEventListener("message", function (e) {
-            console.log('event message: ', e);
-            // postMessageは様々な場所から呼べる（＝インジェクションの口になる可能性がある）ため、最初にメッセージ送信元のオリジンの検証を行っておくとよりセキュアな実装になります。
-            if (e.origin !== targetOrigin) return;
+    // addLog("childs event received. " + JSON.stringify(e.data));
 
-            // PayloadはシリアライズされたJSONで渡されます。
-            let eventPayload = e.data.ctx ? JSON.parse(e.data.ctx) : {};
-
-            // addLog("childs event received. " + JSON.stringify(e.data));
-
-            // eventNameというキーでUnityから渡されたメッセージを識別して処理してもらう仕様となります。
-            switch (e.data.eventName) {
-                case "unityInitialized":
-                    // Unity側のスクリプトが読み込まれるとIFrameの親要素に対してunityInitializedというメッセージが通知されます。
-                    // このタイミングでUnityが稼働するIFrameに対して受信したいイベントを登録します。
-                    // 第二引数に「"*"」としてワイルドカードを渡すか、明示的にIFrameのオリジンを指定しないとpostMessageが飛びません。
-                    document.querySelector("#unity-webgl").contentWindow.postMessage({
-                        "name": "registerEvents",
-                        "events": [
-                            // 以下、イベントを定義している中から任意で利用して下さい。
-                            // なお、ctx変数にはUnity側の変数をダンプしているため、ロギングできると良いです（万が一の調査時に役立つため）
-                            "loginFailed", // ログイン画面でログイン失敗時に呼ばれるイベント（ctx:null）
-                            "loginSuccessed", // ログイン画面でログイン成功時に呼ばれるイベント（ctx: {"userId": ログインユーザのID}）
-                            "sceneChanged", // Unity側で管理しているシーン遷移時に呼ばれるイベント（ctx: {"sceneName": シーン名}）
-                            "chatStarted", // ゲストとオペレータの通話が確立した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
-                            "chatEnded", // ゲストとオペレータの通話が終了した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
-                            "getAvailableOperators", // 待機画面に居る時、呼び出し可能なオペレーターの一覧を返却するイベント（ctx: [{オペレーター情報}]）
-                            "moveToChatRoom", // チャットルームへの遷移を間接操作した時のコールバック用イベント（ctx: {"resultCode": 0または1(文字列)}）
-                        ]
-                    }, targetOrigin);
-                    break;
-                case "loginFailed":
-                    // IDもしくはパスワードが間違っている、SSTalkのAPIサーバー不調時にここに落ちます。
-                    // Example Payload: ""
-                    addLog("ここにログイン失敗時の処理を記述");
-                    break;
-                case "loginSuccessed":
-                    // クエリパラメータによる自動ログイン、手動ログインも含め、ログイン処理が完了した時にここに落ちます。
-                    // Example Payload: {"userId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
-                    addLog("ここにログイン成功時の処理を記述: " + eventPayload.userId);
-                    break;
-                case "sceneChanged":
-                    // Unityのシーン遷移時に呼ばれます。
-                    // 現在以下の様なシーンを実装しています。
-                    //  - EntryPoint: Unity起動時およびログアウト時にUnityアプリの初期化処理を行うシーンです。
-                    //  - Title: EntryPointで初期化完了時に必ずここに遷移します。
-                    //  - WaitingRoom: ログイン後、サイネージモード（通話前アレンジ）または通話対象のアバター選択画面としてここに遷移します。
-                    //  - GuestChatRoom: ゲストがオペレーターを呼び出すボタン及び通話中のシーンとしてWaitingRoomからここに遷移します。
-                    // Example Payload: {"sceneName":"GuestChatRoom"}
-                    addLog("ここにシーン遷移時の処理を記述: " + eventPayload.sceneName);
-                    break;
-                case "chatStarted":
-                    // GuestChatRoomにおいて、オペレーターと音声および通話が始まるタイミングで呼ばれます。
-                    // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
-                    addLog("ここにチャット開始時の処理を記述: " + eventPayload.chatId);
-                    break;
-                case "chatEnded":
-                    // GuestChatRoomにおいて、オペレーターとの通話が終了したタイミングで呼ばれます。
-                    // このイベント発火後、画面はWaitingRoomへと戻ります。
-                    // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
-                    addLog("ここにチャット終了時の処理を記述: " + eventPayload.chatId);
-                    break;
-                case "getAvailableOperators":
-                    // 通話可能なオペレーター一覧を取得するイベントをpostされた時、ここで結果が通知されます。
-                    // Example Payload: {"availableOperators": [{
-                    //   "chatId": "xxxx-xxxx-xxxx",
-                    //   "avatarName": "アバター表示名",
-                    //   "displayName": "オペレーター表示名",
-                    //   "affiliationName": "所属名",
-                    //   "affiliationId": "所属ID",
-                    //   "connectionId": "チャットルームに移動する時に渡す文字列",
-                    // }]}
-                    // ※availableOperatorsはシリアライズされた状態で渡されるので、JSONとして処理する場合はParseを行って下さい。
-                    addLog("通話可能なオペレーター一覧: " + JSON.stringify(eventPayload))
-                    applyAvailableOperators(JSON.parse(eventPayload.availableOperators));
-                case "moveToChatRoom":
-                    // チャットルームに移動するイベントをpostされた時、ここで結果が通知されます。
-                    // resultCode: 0->成功, -1->失敗（現在待機画面に居ない等）
-                    // Example Payload: {"message": "processed normaly", "resultCode": "0"}
-                    addLog("moveToChatRoom result: " + eventPayload.resultCode)
-            }
-        })
-    </script>
+    // eventNameというキーでUnityから渡されたメッセージを識別して処理してもらう仕様となります。
+    switch (e.data.eventName) {
+      case "unityInitialized":
+        // Unity側のスクリプトが読み込まれるとIFrameの親要素に対してunityInitializedというメッセージが通知されます。
+        // このタイミングでUnityが稼働するIFrameに対して受信したいイベントを登録します。
+        // 第二引数に「"*"」としてワイルドカードを渡すか、明示的にIFrameのオリジンを指定しないとpostMessageが飛びません。
+        document.querySelector("#unity-webgl").contentWindow.postMessage({
+          "name": "registerEvents",
+          "events": [
+            // 以下、イベントを定義している中から任意で利用して下さい。
+            // なお、ctx変数にはUnity側の変数をダンプしているため、ロギングできると良いです（万が一の調査時に役立つため）
+            "loginFailed", // ログイン画面でログイン失敗時に呼ばれるイベント（ctx:null）
+            "loginSuccessed", // ログイン画面でログイン成功時に呼ばれるイベント（ctx: {"userId": ログインユーザのID}）
+            "sceneChanged", // Unity側で管理しているシーン遷移時に呼ばれるイベント（ctx: {"sceneName": シーン名}）
+            "chatStarted", // ゲストとオペレータの通話が確立した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
+            "chatEnded", // ゲストとオペレータの通話が終了した時に呼ばれるイベント（ctx: {"chatId": チャットルームの一意なID}）
+            "getAvailableOperators", // 待機画面に居る時、呼び出し可能なオペレーターの一覧を返却するイベント（ctx: [{オペレーター情報}]）
+            "moveToChatRoom", // チャットルームへの遷移を間接操作した時のコールバック用イベント（ctx: {"resultCode": 0または1(文字列)}）
+          ]
+        }, targetOrigin);
+        break;
+      case "loginFailed":
+        // IDもしくはパスワードが間違っている、SSTalkのAPIサーバー不調時にここに落ちます。
+        // Example Payload: ""
+        addLog("ここにログイン失敗時の処理を記述");
+        break;
+      case "loginSuccessed":
+        // クエリパラメータによる自動ログイン、手動ログインも含め、ログイン処理が完了した時にここに落ちます。
+        // Example Payload: {"userId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
+        addLog("ここにログイン成功時の処理を記述: " + eventPayload.userId);
+        break;
+      case "sceneChanged":
+        // Unityのシーン遷移時に呼ばれます。
+        // 現在以下の様なシーンを実装しています。
+        //  - EntryPoint: Unity起動時およびログアウト時にUnityアプリの初期化処理を行うシーンです。
+        //  - Title: EntryPointで初期化完了時に必ずここに遷移します。
+        //  - WaitingRoom: ログイン後、サイネージモード（通話前アレンジ）または通話対象のアバター選択画面としてここに遷移します。
+        //  - GuestChatRoom: ゲストがオペレーターを呼び出すボタン及び通話中のシーンとしてWaitingRoomからここに遷移します。
+        // Example Payload: {"sceneName":"GuestChatRoom"}
+        addLog("ここにシーン遷移時の処理を記述: " + eventPayload.sceneName);
+        break;
+      case "chatStarted":
+        // GuestChatRoomにおいて、オペレーターと音声および通話が始まるタイミングで呼ばれます。
+        // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
+        addLog("ここにチャット開始時の処理を記述: " + eventPayload.chatId);
+        break;
+      case "chatEnded":
+        // GuestChatRoomにおいて、オペレーターとの通話が終了したタイミングで呼ばれます。
+        // このイベント発火後、画面はWaitingRoomへと戻ります。
+        // Example Payload: {"chatId": "1e0cbb5b-c07b-4071-b1c6-f50e0e51e256"}
+        addLog("ここにチャット終了時の処理を記述: " + eventPayload.chatId);
+        break;
+      case "getAvailableOperators":
+        // 通話可能なオペレーター一覧を取得するイベントをpostされた時、ここで結果が通知されます。
+        // Example Payload: {"availableOperators": [{
+        //   "chatId": "xxxx-xxxx-xxxx",
+        //   "avatarName": "アバター表示名",
+        //   "displayName": "オペレーター表示名",
+        //   "affiliationName": "所属名",
+        //   "affiliationId": "所属ID",
+        //   "connectionId": "チャットルームに移動する時に渡す文字列",
+        // }]}
+        // ※availableOperatorsはシリアライズされた状態で渡されるので、JSONとして処理する場合はParseを行って下さい。
+        addLog("通話可能なオペレーター一覧: " + JSON.stringify(eventPayload))
+        applyAvailableOperators(JSON.parse(eventPayload.availableOperators));
+      case "notifyToOperator":
+        // オペレーター通知イベントをpostされた時、ここで結果が通知されます。
+        // resultCode: 0->成功, -1->失敗（現在待機画面に居ない等）
+        // Example Payload: {"message": "processed normaly", "resultCode": "0"}
+        addLog("notifyToOperator result: " + eventPayload.resultCode)
+      case "moveToChatRoom":
+        // チャットルームに移動するイベントをpostされた時、ここで結果が通知されます。
+        // resultCode: 0->成功, -1->失敗（現在待機画面に居ない等）
+        // Example Payload: {"message": "processed normaly", "resultCode": "0"}
+        addLog("moveToChatRoom result: " + eventPayload.resultCode)
+    }
+  })
+</script>
 </body>
