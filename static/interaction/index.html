@@ -61,10 +61,8 @@
       params[param[0]] = param[1];
     })
     let envStr = '';
-    if (params.env === 'stg') {
-      envStr = '.stg';
-    } else if (params.env === 'dev') {
-      envStr = '.dev';
+    if (params.env) {
+      envStr = `.${params.env}`
     }
     const srcParam = params.user && params.key ? '?user=' + params.user + '&key=' + params.key : '';
     targetOrigin = 'https://talk-web' + envStr + '.sklt.io';
@@ -100,7 +98,7 @@
       name: 'notifyToOperator',
       messageTitle: "遠隔ボタンからのご連絡",
       messageBody: "私は耳が不自由なため、手話でご対応いただけますでしょうか。"
-    });
+    }, "*");
   }
 
   function clearLogs() {
